@@ -58,24 +58,26 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
-                auth.requestMatchers("/auth/**").permitAll()
-                    .requestMatchers("/test-login").permitAll()
-                    .requestMatchers("/health/**").permitAll()
-                    .requestMatchers("/public/**").permitAll()
-                    .requestMatchers("/open/**").permitAll()
-                    .requestMatchers("/api/v1/mongodb-test/**").permitAll()
-                    .requestMatchers("/api/v1/db-info").permitAll()
-                    .requestMatchers("/mongo-test").permitAll()
+                auth.requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/auth/**")).permitAll()
+                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/test-login")).permitAll()
+                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/health/**")).permitAll()
+                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/public/**")).permitAll()
+                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/open/**")).permitAll()
+                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/api/v1/mongodb-test/**")).permitAll()
+                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/api/v1/db-info")).permitAll()
+                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/mongo-test")).permitAll()
+                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/direct-mongo-test")).permitAll()
+                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/root/**")).permitAll()
                     .anyRequest().authenticated()
             );
         
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
         
         return http.build();
     }
@@ -83,10 +85,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:3000", "http://localhost:49821"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
