@@ -63,16 +63,11 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
-                auth.requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/auth/**")).permitAll()
-                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/test-login")).permitAll()
-                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/health/**")).permitAll()
-                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/public/**")).permitAll()
-                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/open/**")).permitAll()
-                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/api/v1/mongodb-test/**")).permitAll()
-                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/api/v1/db-info")).permitAll()
-                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/mongo-test")).permitAll()
-                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/direct-mongo-test")).permitAll()
-                    .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/root/**")).permitAll()
+                auth.requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/auth/**")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/health/**")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/direct-mongo-test")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/mongo-status")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/debug/**")).permitAll()
                     .anyRequest().authenticated()
             );
         

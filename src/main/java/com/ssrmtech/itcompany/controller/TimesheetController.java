@@ -19,10 +19,22 @@ public class TimesheetController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('PARENT_ADMIN')")
     public ResponseEntity<List<Timesheet>> getAllTimesheets(@RequestParam(required = false) String status) {
+        System.out.println("TimesheetController: Getting all timesheets with status: " + status);
+        List<Timesheet> timesheets;
         if (status != null) {
-            return ResponseEntity.ok(timesheetService.getTimesheetsByStatus(status));
+            timesheets = timesheetService.getTimesheetsByStatus(status);
+            System.out.println("TimesheetController: Found " + timesheets.size() + " timesheets with status: " + status);
+            for (Timesheet timesheet : timesheets) {
+                System.out.println("  - Timesheet ID: " + timesheet.getId() + ", User ID: " + timesheet.getUserId() + ", Status: " + timesheet.getStatus());
+            }
+        } else {
+            timesheets = timesheetService.getAllTimesheets();
+            System.out.println("TimesheetController: Found " + timesheets.size() + " total timesheets");
+            for (Timesheet timesheet : timesheets) {
+                System.out.println("  - Timesheet ID: " + timesheet.getId() + ", User ID: " + timesheet.getUserId() + ", Status: " + timesheet.getStatus());
+            }
         }
-        return ResponseEntity.ok(timesheetService.getAllTimesheets());
+        return ResponseEntity.ok(timesheets);
     }
 
     @GetMapping("/{id}")
@@ -40,7 +52,10 @@ public class TimesheetController {
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('PARENT_ADMIN')")
     public ResponseEntity<Timesheet> createTimesheet(@RequestBody Timesheet timesheet) {
-        return ResponseEntity.ok(timesheetService.createTimesheet(timesheet));
+        System.out.println("TimesheetController: Creating timesheet: " + timesheet);
+        Timesheet createdTimesheet = timesheetService.createTimesheet(timesheet);
+        System.out.println("TimesheetController: Created timesheet with ID: " + createdTimesheet.getId() + ", Status: " + createdTimesheet.getStatus());
+        return ResponseEntity.ok(createdTimesheet);
     }
 
     @PutMapping("/{id}")

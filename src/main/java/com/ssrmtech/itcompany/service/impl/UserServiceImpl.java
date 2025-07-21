@@ -26,8 +26,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(String id) {
-        return userRepository.findById(id)
+        System.out.println("Looking up user by ID: " + id);
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        System.out.println("Found user: " + user.getEmail());
+        return user;
     }
 
     @Override
@@ -108,6 +111,11 @@ public class UserServiceImpl implements UserService {
         User user = getUserById(id);
         user.setLastLogin(new Date());
         userRepository.save(user);
+    }
+    
+    @Override
+    public List<User> getUsersByRole(String role) {
+        return userRepository.findByRole(role);
     }
     
     private void sendAdminNotification(User user) {

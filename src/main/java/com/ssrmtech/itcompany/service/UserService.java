@@ -13,4 +13,5 @@ public interface UserService {
     User approveUser(String id);
     User rejectUser(String id);
     void updateLastLogin(String id);
+    List<User> getUsersByRole(String role);
 }
