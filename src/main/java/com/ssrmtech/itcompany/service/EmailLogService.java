@@ -6,7 +6,12 @@ import java.util.List;
 
 public interface EmailLogService {
     List<EmailLog> getAllEmailLogs();
-    EmailLog getEmailLogById(String id);
+    List<EmailLog> getAllUserEmailLogs();
+    List<EmailLog> getAllAdminEmailLogs();
+    List<EmailLog> getAllParentAdminEmailLogs();
+    EmailLog getEmailLogById(String id, String collectionName);
     List<EmailLog> getEmailLogsByToEmail(String email);
     EmailLog createEmailLog(EmailLog emailLog);
+    int migrateEmailLogs();
+    int copyEmailsToDefaultCollection();
 }

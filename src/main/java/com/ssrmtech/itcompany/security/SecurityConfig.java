@@ -19,7 +19,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -29,7 +28,6 @@ public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthEntryPointJwt unauthorizedHandler;
-    private final String[] allowedOrigins;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -65,9 +63,15 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/auth/**")).permitAll()
                     .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/health/**")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/app-health")).permitAll()
                     .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/direct-mongo-test")).permitAll()
                     .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/mongo-status")).permitAll()
                     .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/debug/**")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/test-email/**")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/debug/email-test/**")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/email-migration/**")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/direct-emails/**")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/email-copy/**")).permitAll()
                     .anyRequest().authenticated()
             );
         

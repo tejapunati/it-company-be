@@ -4,7 +4,7 @@ import com.ssrmtech.itcompany.model.Timesheet;
 import com.ssrmtech.itcompany.model.User;
 import com.ssrmtech.itcompany.repository.TimesheetRepository;
 import com.ssrmtech.itcompany.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

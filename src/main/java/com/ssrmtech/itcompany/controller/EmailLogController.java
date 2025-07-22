@@ -20,11 +20,31 @@ public class EmailLogController {
     public ResponseEntity<List<EmailLog>> getAllEmailLogs() {
         return ResponseEntity.ok(emailLogService.getAllEmailLogs());
     }
+    
+    @GetMapping("/user")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PARENT_ADMIN')")
+    public ResponseEntity<List<EmailLog>> getAllUserEmailLogs() {
+        return ResponseEntity.ok(emailLogService.getAllUserEmailLogs());
+    }
+    
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PARENT_ADMIN')")
+    public ResponseEntity<List<EmailLog>> getAllAdminEmailLogs() {
+        return ResponseEntity.ok(emailLogService.getAllAdminEmailLogs());
+    }
+    
+    @GetMapping("/parent-admin")
+    @PreAuthorize("hasRole('PARENT_ADMIN')")
+    public ResponseEntity<List<EmailLog>> getAllParentAdminEmailLogs() {
+        return ResponseEntity.ok(emailLogService.getAllParentAdminEmailLogs());
+    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PARENT_ADMIN')")
-    public ResponseEntity<EmailLog> getEmailLogById(@PathVariable String id) {
-        return ResponseEntity.ok(emailLogService.getEmailLogById(id));
+    public ResponseEntity<EmailLog> getEmailLogById(
+            @PathVariable String id,
+            @RequestParam(required = false) String collection) {
+        return ResponseEntity.ok(emailLogService.getEmailLogById(id, collection));
     }
 
     @GetMapping("/user/{email}")

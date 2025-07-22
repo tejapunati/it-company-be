@@ -51,11 +51,42 @@ public class TimesheetController {
 
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN') or hasRole('PARENT_ADMIN')")
-    public ResponseEntity<Timesheet> createTimesheet(@RequestBody Timesheet timesheet) {
-        System.out.println("TimesheetController: Creating timesheet: " + timesheet);
-        Timesheet createdTimesheet = timesheetService.createTimesheet(timesheet);
-        System.out.println("TimesheetController: Created timesheet with ID: " + createdTimesheet.getId() + ", Status: " + createdTimesheet.getStatus());
-        return ResponseEntity.ok(createdTimesheet);
+    public ResponseEntity<?> createTimesheet(@RequestBody Timesheet timesheet) {
+        try {
+            System.out.println("TimesheetController: Creating timesheet: " + timesheet);
+            
+            // Validate timesheet data
+            if (timesheet.getWeekEnding() == null || timesheet.getWeekEnding().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", "Week ending date is required"
+                ));
+            }
+            
+            if (timesheet.getHours() == null || timesheet.getHours().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", "Hours data is required"
+                ));
+            }
+            
+            Timesheet createdTimesheet = timesheetService.createTimesheet(timesheet);
+            System.out.println("TimesheetController: Created timesheet with ID: " + createdTimesheet.getId() + ", Status: " + createdTimesheet.getStatus());
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Timesheet created successfully",
+                "timesheet", createdTimesheet
+            ));
+        } catch (Exception e) {
+            System.err.println("Error creating timesheet: " + e.getMessage());
+            e.printStackTrace();
+            
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", "Failed to create timesheet: " + e.getMessage()
+            ));
+        }
     }
 
     @PutMapping("/{id}")

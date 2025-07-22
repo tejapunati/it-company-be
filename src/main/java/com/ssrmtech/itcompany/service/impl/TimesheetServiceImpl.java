@@ -1,10 +1,10 @@
 package com.ssrmtech.itcompany.service.impl;
 
-import com.ssrmtech.itcompany.model.EmailLog;
 import com.ssrmtech.itcompany.model.Timesheet;
 import com.ssrmtech.itcompany.model.User;
 import com.ssrmtech.itcompany.repository.TimesheetRepository;
 import com.ssrmtech.itcompany.service.EmailLogService;
+import com.ssrmtech.itcompany.service.EmailService;
 import com.ssrmtech.itcompany.service.TimesheetService;
 import com.ssrmtech.itcompany.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.List;
 public class TimesheetServiceImpl implements TimesheetService {
     private final TimesheetRepository timesheetRepository;
     private final UserService userService;
-    private final EmailLogService emailLogService;
+    private final EmailService emailService;
 
     @Override
     public List<Timesheet> getAllTimesheets() {
@@ -178,12 +178,8 @@ public class TimesheetServiceImpl implements TimesheetService {
                 }
             }
             
-            EmailLog emailLog = new EmailLog();
-            emailLog.setToEmail(user.getEmail());
-            emailLog.setFromEmail("noreply@ssrmtech.com");
-            emailLog.setSubject("Timesheet Approved - Status: APPROVED");
-            emailLog.setBody(
-                "Dear " + userName + ",\n\n" +
+            String subject = "Timesheet Approved - Status: APPROVED";
+            String body = "Dear " + userName + ",\n\n" +
                 "Your timesheet for the week ending " + timesheet.getWeekEnding() + " has been APPROVED.\n\n" +
                 "Status: APPROVED\n" +
                 "Total Hours: " + timesheet.getTotalHours() + "\n" +
@@ -191,14 +187,11 @@ public class TimesheetServiceImpl implements TimesheetService {
                 "Approved Date: " + (timesheet.getReviewedDate() != null ? timesheet.getReviewedDate() : new Date()) + "\n\n" +
                 "Thank you for your submission.\n\n" +
                 "Best regards,\n" +
-                "SSRM Tech System"
-            );
-            emailLog.setType("TIMESHEET_APPROVED");
-            emailLog.setStatus("SENT");
-            emailLog.setSentDate(new Date());
+                "SSRM Tech System";
             
-            emailLogService.createEmailLog(emailLog);
-            System.out.println("Created approval email log for user: " + user.getEmail());
+            // Send and log the email
+            emailService.sendEmail(user.getEmail(), subject, body, "TIMESHEET_APPROVED");
+            System.out.println("Sent approval email to user: " + user.getEmail());
         } catch (Exception e) {
             System.err.println("Error sending approval email: " + e.getMessage());
             e.printStackTrace();
@@ -224,12 +217,8 @@ public class TimesheetServiceImpl implements TimesheetService {
                 }
             }
             
-            EmailLog emailLog = new EmailLog();
-            emailLog.setToEmail(user.getEmail());
-            emailLog.setFromEmail("noreply@ssrmtech.com");
-            emailLog.setSubject("Timesheet Rejected - Status: REJECTED");
-            emailLog.setBody(
-                "Dear " + userName + ",\n\n" +
+            String subject = "Timesheet Rejected - Status: REJECTED";
+            String body = "Dear " + userName + ",\n\n" +
                 "Your timesheet for the week ending " + timesheet.getWeekEnding() + " has been REJECTED.\n\n" +
                 "Status: REJECTED\n" +
                 "Total Hours: " + timesheet.getTotalHours() + "\n" +
@@ -238,14 +227,11 @@ public class TimesheetServiceImpl implements TimesheetService {
                 "Reason: " + comments + "\n\n" +
                 "Please review and resubmit your timesheet.\n\n" +
                 "Best regards,\n" +
-                "SSRM Tech System"
-            );
-            emailLog.setType("TIMESHEET_REJECTED");
-            emailLog.setStatus("SENT");
-            emailLog.setSentDate(new Date());
+                "SSRM Tech System";
             
-            emailLogService.createEmailLog(emailLog);
-            System.out.println("Created rejection email log for user: " + user.getEmail());
+            // Send and log the email
+            emailService.sendEmail(user.getEmail(), subject, body, "TIMESHEET_REJECTED");
+            System.out.println("Sent rejection email to user: " + user.getEmail());
         } catch (Exception e) {
             System.err.println("Error sending rejection email: " + e.getMessage());
             e.printStackTrace();
@@ -258,36 +244,24 @@ public class TimesheetServiceImpl implements TimesheetService {
             User user = userService.getUserById(timesheet.getUserId());
             String userName = user.getName() != null ? user.getName() : "User";
             
-            // Create email log for the user
-            EmailLog userEmailLog = new EmailLog();
-            userEmailLog.setToEmail(user.getEmail());
-            userEmailLog.setFromEmail("noreply@ssrmtech.com");
-            userEmailLog.setSubject("Timesheet Submitted - Status: PENDING");
-            userEmailLog.setBody(
-                "Dear " + userName + ",\n\n" +
+            // Send email to the user
+            String userSubject = "Timesheet Submitted - Status: PENDING";
+            String userBody = "Dear " + userName + ",\n\n" +
                 "Your timesheet for the week ending " + timesheet.getWeekEnding() + " has been submitted successfully.\n\n" +
                 "Status: PENDING\n" +
                 "Total Hours: " + timesheet.getTotalHours() + "\n\n" +
                 "Your timesheet will be reviewed by an administrator.\n\n" +
                 "Best regards,\n" +
-                "SSRM Tech System"
-            );
-            userEmailLog.setType("TIMESHEET_SUBMITTED");
-            userEmailLog.setStatus("SENT");
-            userEmailLog.setSentDate(new Date());
+                "SSRM Tech System";
             
-            emailLogService.createEmailLog(userEmailLog);
-            System.out.println("Created email log for user: " + user.getEmail());
+            emailService.sendEmail(user.getEmail(), userSubject, userBody, "TIMESHEET_SUBMITTED");
+            System.out.println("Sent submission email to user: " + user.getEmail());
             
             // Create email logs for all admins
             List<User> admins = userService.getUsersByRole("ADMIN");
             for (User admin : admins) {
-                EmailLog adminEmailLog = new EmailLog();
-                adminEmailLog.setToEmail(admin.getEmail());
-                adminEmailLog.setFromEmail("noreply@ssrmtech.com");
-                adminEmailLog.setSubject("New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")");
-                adminEmailLog.setBody(
-                    "Dear Admin,\n\n" +
+                String adminSubject = "New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")";
+                String adminBody = "Dear Admin,\n\n" +
                     "A new timesheet has been submitted for your review:\n\n" +
                     "Employee: " + userName + "\n" +
                     "Email: " + user.getEmail() + "\n" +
@@ -296,25 +270,17 @@ public class TimesheetServiceImpl implements TimesheetService {
                     "Total Hours: " + timesheet.getTotalHours() + "\n\n" +
                     "Please review and approve/reject this timesheet in the admin dashboard.\n\n" +
                     "Best regards,\n" +
-                    "SSRM Tech System"
-                );
-                adminEmailLog.setType("ADMIN_NOTIFICATION");
-                adminEmailLog.setStatus("SENT");
-                adminEmailLog.setSentDate(new Date());
+                    "SSRM Tech System";
                 
-                emailLogService.createEmailLog(adminEmailLog);
-                System.out.println("Created email log for admin: " + admin.getEmail());
+                emailService.sendEmail(admin.getEmail(), adminSubject, adminBody, "ADMIN_NOTIFICATION");
+                System.out.println("Sent notification email to admin: " + admin.getEmail());
             }
             
             // Create email logs for all parent admins
             List<User> parentAdmins = userService.getUsersByRole("PARENT_ADMIN");
             for (User parentAdmin : parentAdmins) {
-                EmailLog parentAdminEmailLog = new EmailLog();
-                parentAdminEmailLog.setToEmail(parentAdmin.getEmail());
-                parentAdminEmailLog.setFromEmail("noreply@ssrmtech.com");
-                parentAdminEmailLog.setSubject("New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")");
-                parentAdminEmailLog.setBody(
-                    "Dear Admin,\n\n" +
+                String parentAdminSubject = "New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")";
+                String parentAdminBody = "Dear Admin,\n\n" +
                     "A new timesheet has been submitted for your review:\n\n" +
                     "Employee: " + userName + "\n" +
                     "Email: " + user.getEmail() + "\n" +
@@ -323,14 +289,10 @@ public class TimesheetServiceImpl implements TimesheetService {
                     "Total Hours: " + timesheet.getTotalHours() + "\n\n" +
                     "Please review and approve/reject this timesheet in the admin dashboard.\n\n" +
                     "Best regards,\n" +
-                    "SSRM Tech System"
-                );
-                parentAdminEmailLog.setType("ADMIN_NOTIFICATION");
-                parentAdminEmailLog.setStatus("SENT");
-                parentAdminEmailLog.setSentDate(new Date());
+                    "SSRM Tech System";
                 
-                emailLogService.createEmailLog(parentAdminEmailLog);
-                System.out.println("Created email log for parent admin: " + parentAdmin.getEmail());
+                emailService.sendEmail(parentAdmin.getEmail(), parentAdminSubject, parentAdminBody, "ADMIN_NOTIFICATION");
+                System.out.println("Sent notification email to parent admin: " + parentAdmin.getEmail());
             }
         } catch (Exception e) {
             System.err.println("Error sending timesheet submission email: " + e.getMessage());

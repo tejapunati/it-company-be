@@ -7,8 +7,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
 
 @Data
-@Document(collection = "email_logs")
+@Document
 public class EmailLog {
+    // Collection will be determined dynamically
     @Id
     private String id;
     
