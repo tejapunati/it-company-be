@@ -41,24 +41,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
-        // Check if email already exists
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already in use");
+        try {
+            // Check if email already exists
+            if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+                throw new RuntimeException("Email already in use");
+            }
+            
+            // Encode password
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            
+            // Set default values
+            user.setStatus("ACTIVE");
+            user.setCreatedDate(new Date());
+            
+            User savedUser = userRepository.save(user);
+            
+            // Send email notification to admins
+            sendAdminNotification(savedUser);
+            
+            return savedUser;
+        } catch (Exception e) {
+            System.err.println("Error creating user: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to create user: " + e.getMessage());
         }
-        
-        // Encode password
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        
-        // Set default values
-        user.setStatus("PENDING");
-        user.setCreatedDate(new Date());
-        
-        User savedUser = userRepository.save(user);
-        
-        // Send email notification to admins
-        sendAdminNotification(savedUser);
-        
-        return savedUser;
     }
 
     @Override

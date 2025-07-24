@@ -16,7 +16,6 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PARENT_ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
@@ -25,6 +24,11 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('PARENT_ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<User> getUserById(@PathVariable String id) {
         return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.createUser(user));
     }
 
     @PostMapping("/{id}/approve")
