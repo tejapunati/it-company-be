@@ -71,6 +71,24 @@ public class EmailLogServiceImpl implements EmailLogService {
         
         return allLogs;
     }
+    
+    @Override
+    public List<EmailLog> getUserEmailLogsByEmail(String email) {
+        Query query = new Query(Criteria.where("toEmail").is(email));
+        return mongoTemplate.find(query, EmailLog.class, EmailCollectionResolver.USER_COLLECTION);
+    }
+    
+    @Override
+    public List<EmailLog> getAdminEmailLogsByEmail(String email) {
+        Query query = new Query(Criteria.where("toEmail").is(email));
+        return mongoTemplate.find(query, EmailLog.class, EmailCollectionResolver.ADMIN_COLLECTION);
+    }
+    
+    @Override
+    public List<EmailLog> getParentAdminEmailLogsByEmail(String email) {
+        Query query = new Query(Criteria.where("toEmail").is(email));
+        return mongoTemplate.find(query, EmailLog.class, EmailCollectionResolver.PARENT_ADMIN_COLLECTION);
+    }
 
     @Override
     public EmailLog createEmailLog(EmailLog emailLog) {

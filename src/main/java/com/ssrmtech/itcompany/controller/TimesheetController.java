@@ -1,5 +1,6 @@
 package com.ssrmtech.itcompany.controller;
 
+import com.ssrmtech.itcompany.dto.TimesheetWithUserDTO;
 import com.ssrmtech.itcompany.model.Timesheet;
 import com.ssrmtech.itcompany.service.TimesheetService;
 import lombok.RequiredArgsConstructor;
@@ -18,21 +19,15 @@ public class TimesheetController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('PARENT_ADMIN')")
-    public ResponseEntity<List<Timesheet>> getAllTimesheets(@RequestParam(required = false) String status) {
+    public ResponseEntity<List<TimesheetWithUserDTO>> getAllTimesheets(@RequestParam(required = false) String status) {
         System.out.println("TimesheetController: Getting all timesheets with status: " + status);
-        List<Timesheet> timesheets;
+        List<TimesheetWithUserDTO> timesheets;
         if (status != null) {
-            timesheets = timesheetService.getTimesheetsByStatus(status);
+            timesheets = timesheetService.getTimesheetsWithUserDetailsByStatus(status);
             System.out.println("TimesheetController: Found " + timesheets.size() + " timesheets with status: " + status);
-            for (Timesheet timesheet : timesheets) {
-                System.out.println("  - Timesheet ID: " + timesheet.getId() + ", User ID: " + timesheet.getUserId() + ", Status: " + timesheet.getStatus());
-            }
         } else {
-            timesheets = timesheetService.getAllTimesheets();
+            timesheets = timesheetService.getTimesheetsWithUserDetails();
             System.out.println("TimesheetController: Found " + timesheets.size() + " total timesheets");
-            for (Timesheet timesheet : timesheets) {
-                System.out.println("  - Timesheet ID: " + timesheet.getId() + ", User ID: " + timesheet.getUserId() + ", Status: " + timesheet.getStatus());
-            }
         }
         return ResponseEntity.ok(timesheets);
     }

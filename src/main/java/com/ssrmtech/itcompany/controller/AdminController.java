@@ -22,6 +22,7 @@ public class AdminController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('PARENT_ADMIN')")
     public ResponseEntity<Admin> createAdmin(@RequestBody Admin admin) {
         return ResponseEntity.ok(adminService.createAdmin(admin));
     }

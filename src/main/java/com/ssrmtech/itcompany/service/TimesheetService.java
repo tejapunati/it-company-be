@@ -9,6 +9,8 @@ public interface TimesheetService {
     Timesheet getTimesheetById(String id);
     List<Timesheet> getTimesheetsByUserId(String userId);
     List<Timesheet> getTimesheetsByStatus(String status);
+    List<com.ssrmtech.itcompany.dto.TimesheetWithUserDTO> getTimesheetsWithUserDetails();
+    List<com.ssrmtech.itcompany.dto.TimesheetWithUserDTO> getTimesheetsWithUserDetailsByStatus(String status);
     Timesheet createTimesheet(Timesheet timesheet);
     Timesheet updateTimesheet(Timesheet timesheet);
     Timesheet approveTimesheet(String id, String comments);

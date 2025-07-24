@@ -48,8 +48,17 @@ public class EmailLogController {
     }
 
     @GetMapping("/user/{email}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PARENT_ADMIN') or #email == authentication.principal.username")
-    public ResponseEntity<List<EmailLog>> getEmailLogsByUserEmail(@PathVariable String email) {
-        return ResponseEntity.ok(emailLogService.getEmailLogsByToEmail(email));
+    public ResponseEntity<List<EmailLog>> getUserEmailLogs(@PathVariable String email) {
+        return ResponseEntity.ok(emailLogService.getUserEmailLogsByEmail(email));
+    }
+    
+    @GetMapping("/admin/{email}")
+    public ResponseEntity<List<EmailLog>> getAdminEmailLogs(@PathVariable String email) {
+        return ResponseEntity.ok(emailLogService.getAdminEmailLogsByEmail(email));
+    }
+    
+    @GetMapping("/parent-admin/{email}")
+    public ResponseEntity<List<EmailLog>> getParentAdminEmailLogs(@PathVariable String email) {
+        return ResponseEntity.ok(emailLogService.getParentAdminEmailLogsByEmail(email));
     }
 }

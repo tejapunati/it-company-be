@@ -11,6 +11,9 @@ public interface EmailLogService {
     List<EmailLog> getAllParentAdminEmailLogs();
     EmailLog getEmailLogById(String id, String collectionName);
     List<EmailLog> getEmailLogsByToEmail(String email);
+    List<EmailLog> getUserEmailLogsByEmail(String email);
+    List<EmailLog> getAdminEmailLogsByEmail(String email);
+    List<EmailLog> getParentAdminEmailLogsByEmail(String email);
     EmailLog createEmailLog(EmailLog emailLog);
     int migrateEmailLogs();
     int copyEmailsToDefaultCollection();

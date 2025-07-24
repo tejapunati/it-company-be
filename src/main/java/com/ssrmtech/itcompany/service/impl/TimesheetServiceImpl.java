@@ -1,16 +1,22 @@
 package com.ssrmtech.itcompany.service.impl;
 
+import com.ssrmtech.itcompany.dto.TimesheetWithUserDTO;
+import com.ssrmtech.itcompany.model.Admin;
+import com.ssrmtech.itcompany.model.ParentAdmin;
 import com.ssrmtech.itcompany.model.Timesheet;
 import com.ssrmtech.itcompany.model.User;
 import com.ssrmtech.itcompany.repository.TimesheetRepository;
+import com.ssrmtech.itcompany.service.AdminService;
 import com.ssrmtech.itcompany.service.EmailLogService;
 import com.ssrmtech.itcompany.service.EmailService;
+import com.ssrmtech.itcompany.service.ParentAdminService;
 import com.ssrmtech.itcompany.service.TimesheetService;
 import com.ssrmtech.itcompany.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -19,6 +25,8 @@ import java.util.List;
 public class TimesheetServiceImpl implements TimesheetService {
     private final TimesheetRepository timesheetRepository;
     private final UserService userService;
+    private final AdminService adminService;
+    private final ParentAdminService parentAdminService;
     private final EmailService emailService;
 
     @Override
@@ -48,6 +56,34 @@ public class TimesheetServiceImpl implements TimesheetService {
             System.out.println("  - Timesheet ID: " + timesheet.getId() + ", User ID: " + timesheet.getUserId() + ", Status: " + timesheet.getStatus());
         }
         return timesheets;
+    }
+    
+    @Override
+    public List<TimesheetWithUserDTO> getTimesheetsWithUserDetails() {
+        List<Timesheet> timesheets = getAllTimesheets();
+        return convertToTimesheetWithUserDTO(timesheets);
+    }
+    
+    @Override
+    public List<TimesheetWithUserDTO> getTimesheetsWithUserDetailsByStatus(String status) {
+        List<Timesheet> timesheets = getTimesheetsByStatus(status);
+        return convertToTimesheetWithUserDTO(timesheets);
+    }
+    
+    private List<TimesheetWithUserDTO> convertToTimesheetWithUserDTO(List<Timesheet> timesheets) {
+        List<TimesheetWithUserDTO> result = new ArrayList<>();
+        for (Timesheet timesheet : timesheets) {
+            try {
+                User user = userService.getUserById(timesheet.getUserId());
+                String userName = user.getName() != null ? user.getName() : "Unknown User";
+                String userEmail = user.getEmail() != null ? user.getEmail() : "unknown@email.com";
+                result.add(TimesheetWithUserDTO.fromTimesheet(timesheet, userName, userEmail));
+            } catch (Exception e) {
+                System.err.println("Error getting user details for timesheet " + timesheet.getId() + ": " + e.getMessage());
+                result.add(TimesheetWithUserDTO.fromTimesheet(timesheet, "Unknown User", "unknown@email.com"));
+            }
+        }
+        return result;
     }
 
     @Override
@@ -257,11 +293,11 @@ public class TimesheetServiceImpl implements TimesheetService {
             emailService.sendEmail(user.getEmail(), userSubject, userBody, "TIMESHEET_SUBMITTED");
             System.out.println("Sent submission email to user: " + user.getEmail());
             
-            // Create email logs for all admins
-            List<User> admins = userService.getUsersByRole("ADMIN");
-            for (User admin : admins) {
+            // Send notifications to all admins from admins collection
+            List<Admin> admins = adminService.getAllAdmins();
+            for (Admin admin : admins) {
                 String adminSubject = "New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")";
-                String adminBody = "Dear Admin,\n\n" +
+                String adminBody = "Dear " + admin.getName() + ",\n\n" +
                     "A new timesheet has been submitted for your review:\n\n" +
                     "Employee: " + userName + "\n" +
                     "Email: " + user.getEmail() + "\n" +
@@ -276,11 +312,11 @@ public class TimesheetServiceImpl implements TimesheetService {
                 System.out.println("Sent notification email to admin: " + admin.getEmail());
             }
             
-            // Create email logs for all parent admins
-            List<User> parentAdmins = userService.getUsersByRole("PARENT_ADMIN");
-            for (User parentAdmin : parentAdmins) {
+            // Send notifications to all parent admins from parent_admins collection
+            List<ParentAdmin> parentAdmins = parentAdminService.getAllParentAdmins();
+            for (ParentAdmin parentAdmin : parentAdmins) {
                 String parentAdminSubject = "New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")";
-                String parentAdminBody = "Dear Admin,\n\n" +
+                String parentAdminBody = "Dear " + parentAdmin.getName() + ",\n\n" +
                     "A new timesheet has been submitted for your review:\n\n" +
                     "Employee: " + userName + "\n" +
                     "Email: " + user.getEmail() + "\n" +
@@ -291,7 +327,7 @@ public class TimesheetServiceImpl implements TimesheetService {
                     "Best regards,\n" +
                     "SSRM Tech System";
                 
-                emailService.sendEmail(parentAdmin.getEmail(), parentAdminSubject, parentAdminBody, "ADMIN_NOTIFICATION");
+                emailService.sendEmail(parentAdmin.getEmail(), parentAdminSubject, parentAdminBody, "PARENT_ADMIN_NOTIFICATION");
                 System.out.println("Sent notification email to parent admin: " + parentAdmin.getEmail());
             }
         } catch (Exception e) {
