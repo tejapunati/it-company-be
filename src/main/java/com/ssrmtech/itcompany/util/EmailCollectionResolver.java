@@ -1,9 +1,16 @@
 package com.ssrmtech.itcompany.util;
 
+import com.ssrmtech.itcompany.service.AdminService;
+import com.ssrmtech.itcompany.service.ParentAdminService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class EmailCollectionResolver {
+    
+    private final AdminService adminService;
+    private final ParentAdminService parentAdminService;
     
     public static final String DEFAULT_COLLECTION = "email_logs";
     public static final String USER_COLLECTION = "user_email_logs";
@@ -26,21 +33,38 @@ public class EmailCollectionResolver {
             return DEFAULT_COLLECTION;
         }
         
-        // First, try to determine by recipient email
+        // Check actual database to determine user role
         if (recipientEmail != null) {
-            String lowerEmail = recipientEmail.toLowerCase();
-            
-            if (lowerEmail.contains("parent-admin")) {
-                System.out.println("Recipient is parent admin, using collection: " + PARENT_ADMIN_COLLECTION);
-                return PARENT_ADMIN_COLLECTION;
-            } else if (lowerEmail.contains("admin")) {
-                System.out.println("Recipient is admin, using collection: " + ADMIN_COLLECTION);
-                return ADMIN_COLLECTION;
-            } else if (lowerEmail.contains("user") || 
-                      lowerEmail.contains("employee") || 
-                      !lowerEmail.contains("admin")) {
-                System.out.println("Recipient appears to be a user, using collection: " + USER_COLLECTION);
+            try {
+                // Check if recipient is a parent admin
+                if (parentAdminService.getAllParentAdmins().stream()
+                    .anyMatch(pa -> pa.getEmail().equalsIgnoreCase(recipientEmail))) {
+                    System.out.println("Recipient is parent admin (from database), using collection: " + PARENT_ADMIN_COLLECTION);
+                    return PARENT_ADMIN_COLLECTION;
+                }
+                
+                // Check if recipient is an admin
+                if (adminService.getAllAdmins().stream()
+                    .anyMatch(admin -> admin.getEmail().equalsIgnoreCase(recipientEmail))) {
+                    System.out.println("Recipient is admin (from database), using collection: " + ADMIN_COLLECTION);
+                    return ADMIN_COLLECTION;
+                }
+                
+                // If not found in admin collections, treat as user
+                System.out.println("Recipient not found in admin collections, using collection: " + USER_COLLECTION);
                 return USER_COLLECTION;
+                
+            } catch (Exception e) {
+                System.err.println("Error checking admin status for " + recipientEmail + ": " + e.getMessage());
+                // Fallback to old logic if database check fails
+                String lowerEmail = recipientEmail.toLowerCase();
+                if (lowerEmail.contains("parent-admin")) {
+                    return PARENT_ADMIN_COLLECTION;
+                } else if (lowerEmail.contains("admin")) {
+                    return ADMIN_COLLECTION;
+                } else {
+                    return USER_COLLECTION;
+                }
             }
         }
         

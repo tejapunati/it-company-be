@@ -294,41 +294,59 @@ public class TimesheetServiceImpl implements TimesheetService {
             System.out.println("Sent submission email to user: " + user.getEmail());
             
             // Send notifications to all admins from admins collection
-            List<Admin> admins = adminService.getAllAdmins();
-            for (Admin admin : admins) {
-                String adminSubject = "New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")";
-                String adminBody = "Dear " + admin.getName() + ",\n\n" +
-                    "A new timesheet has been submitted for your review:\n\n" +
-                    "Employee: " + userName + "\n" +
-                    "Email: " + user.getEmail() + "\n" +
-                    "Week Ending: " + timesheet.getWeekEnding() + "\n" +
-                    "Status: PENDING\n" +
-                    "Total Hours: " + timesheet.getTotalHours() + "\n\n" +
-                    "Please review and approve/reject this timesheet in the admin dashboard.\n\n" +
-                    "Best regards,\n" +
-                    "SSRM Tech System";
+            try {
+                List<Admin> admins = adminService.getAllAdmins();
+                System.out.println("Found " + admins.size() + " admins in database for notification");
                 
-                emailService.sendEmail(admin.getEmail(), adminSubject, adminBody, "ADMIN_NOTIFICATION");
-                System.out.println("Sent notification email to admin: " + admin.getEmail());
+                for (Admin admin : admins) {
+                    System.out.println("Sending notification to admin: " + admin.getEmail() + " (" + admin.getName() + ")");
+                    
+                    String adminSubject = "New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")";
+                    String adminBody = "Dear " + admin.getName() + ",\n\n" +
+                        "A new timesheet has been submitted for your review:\n\n" +
+                        "Employee: " + userName + "\n" +
+                        "Email: " + user.getEmail() + "\n" +
+                        "Week Ending: " + timesheet.getWeekEnding() + "\n" +
+                        "Status: PENDING\n" +
+                        "Total Hours: " + timesheet.getTotalHours() + "\n\n" +
+                        "Please review and approve/reject this timesheet in the admin dashboard.\n\n" +
+                        "Best regards,\n" +
+                        "SSRM Tech System";
+                    
+                    emailService.sendEmail(admin.getEmail(), adminSubject, adminBody, "ADMIN_NOTIFICATION");
+                    System.out.println("Successfully sent notification email to admin: " + admin.getEmail());
+                }
+            } catch (Exception e) {
+                System.err.println("Error sending admin notifications: " + e.getMessage());
+                e.printStackTrace();
             }
             
             // Send notifications to all parent admins from parent_admins collection
-            List<ParentAdmin> parentAdmins = parentAdminService.getAllParentAdmins();
-            for (ParentAdmin parentAdmin : parentAdmins) {
-                String parentAdminSubject = "New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")";
-                String parentAdminBody = "Dear " + parentAdmin.getName() + ",\n\n" +
-                    "A new timesheet has been submitted for your review:\n\n" +
-                    "Employee: " + userName + "\n" +
-                    "Email: " + user.getEmail() + "\n" +
-                    "Week Ending: " + timesheet.getWeekEnding() + "\n" +
-                    "Status: PENDING\n" +
-                    "Total Hours: " + timesheet.getTotalHours() + "\n\n" +
-                    "Please review and approve/reject this timesheet in the admin dashboard.\n\n" +
-                    "Best regards,\n" +
-                    "SSRM Tech System";
+            try {
+                List<ParentAdmin> parentAdmins = parentAdminService.getAllParentAdmins();
+                System.out.println("Found " + parentAdmins.size() + " parent admins in database for notification");
                 
-                emailService.sendEmail(parentAdmin.getEmail(), parentAdminSubject, parentAdminBody, "PARENT_ADMIN_NOTIFICATION");
-                System.out.println("Sent notification email to parent admin: " + parentAdmin.getEmail());
+                for (ParentAdmin parentAdmin : parentAdmins) {
+                    System.out.println("Sending notification to parent admin: " + parentAdmin.getEmail() + " (" + parentAdmin.getName() + ")");
+                    
+                    String parentAdminSubject = "New Timesheet Submission - " + userName + " (Week ending " + timesheet.getWeekEnding() + ")";
+                    String parentAdminBody = "Dear " + parentAdmin.getName() + ",\n\n" +
+                        "A new timesheet has been submitted for your review:\n\n" +
+                        "Employee: " + userName + "\n" +
+                        "Email: " + user.getEmail() + "\n" +
+                        "Week Ending: " + timesheet.getWeekEnding() + "\n" +
+                        "Status: PENDING\n" +
+                        "Total Hours: " + timesheet.getTotalHours() + "\n\n" +
+                        "Please review and approve/reject this timesheet in the admin dashboard.\n\n" +
+                        "Best regards,\n" +
+                        "SSRM Tech System";
+                    
+                    emailService.sendEmail(parentAdmin.getEmail(), parentAdminSubject, parentAdminBody, "PARENT_ADMIN_NOTIFICATION");
+                    System.out.println("Successfully sent notification email to parent admin: " + parentAdmin.getEmail());
+                }
+            } catch (Exception e) {
+                System.err.println("Error sending parent admin notifications: " + e.getMessage());
+                e.printStackTrace();
             }
         } catch (Exception e) {
             System.err.println("Error sending timesheet submission email: " + e.getMessage());

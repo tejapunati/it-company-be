@@ -1,6 +1,7 @@
 package com.ssrmtech.itcompany.controller;
 
 import com.ssrmtech.itcompany.service.AdminService;
+import com.ssrmtech.itcompany.service.EmailLogService;
 import com.ssrmtech.itcompany.service.TimesheetService;
 import com.ssrmtech.itcompany.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class StatsController {
     private final UserService userService;
     private final AdminService adminService;
     private final TimesheetService timesheetService;
+    private final EmailLogService emailLogService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> getDashboardStats() {
@@ -77,6 +79,42 @@ public class StatsController {
             
         } catch (Exception e) {
             debug.put("error", e.getMessage());
+        }
+        
+        return ResponseEntity.ok(debug);
+    }
+    
+    @GetMapping("/debug/emails")
+    public ResponseEntity<Map<String, Object>> debugEmails() {
+        Map<String, Object> debug = new HashMap<>();
+        
+        try {
+            // Get all admins
+            List<com.ssrmtech.itcompany.model.Admin> allAdmins = adminService.getAllAdmins();
+            debug.put("totalAdmins", allAdmins.size());
+            
+            List<Map<String, Object>> adminDetails = new ArrayList<>();
+            for (com.ssrmtech.itcompany.model.Admin admin : allAdmins) {
+                Map<String, Object> adminInfo = new HashMap<>();
+                adminInfo.put("id", admin.getId());
+                adminInfo.put("name", admin.getName());
+                adminInfo.put("email", admin.getEmail());
+                
+                // Get emails for this admin
+                List<com.ssrmtech.itcompany.model.EmailLog> adminEmails = emailLogService.getAdminEmailLogsByEmail(admin.getEmail());
+                adminInfo.put("emailCount", adminEmails.size());
+                
+                adminDetails.add(adminInfo);
+            }
+            debug.put("admins", adminDetails);
+            
+            // Get total emails in admin collection
+            List<com.ssrmtech.itcompany.model.EmailLog> allAdminEmails = emailLogService.getAllAdminEmailLogs();
+            debug.put("totalAdminEmails", allAdminEmails.size());
+            
+        } catch (Exception e) {
+            debug.put("error", e.getMessage());
+            e.printStackTrace();
         }
         
         return ResponseEntity.ok(debug);
