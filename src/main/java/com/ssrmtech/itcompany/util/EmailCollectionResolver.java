@@ -5,12 +5,22 @@ import com.ssrmtech.itcompany.service.ParentAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class EmailCollectionResolver {
     
     private final AdminService adminService;
     private final ParentAdminService parentAdminService;
+    
+    // Cache admin emails for performance
+    private Set<String> adminEmails = null;
+    private Set<String> parentAdminEmails = null;
+    private long lastCacheUpdate = 0;
+    private static final long CACHE_DURATION = 300000; // 5 minutes
     
     public static final String DEFAULT_COLLECTION = "email_logs";
     public static final String USER_COLLECTION = "user_email_logs";
@@ -33,19 +43,21 @@ public class EmailCollectionResolver {
             return DEFAULT_COLLECTION;
         }
         
-        // Check actual database to determine user role
+        // Check actual database to determine user role (with caching)
         if (recipientEmail != null) {
             try {
+                updateCacheIfNeeded();
+                
+                String lowerEmail = recipientEmail.toLowerCase();
+                
                 // Check if recipient is a parent admin
-                if (parentAdminService.getAllParentAdmins().stream()
-                    .anyMatch(pa -> pa.getEmail().equalsIgnoreCase(recipientEmail))) {
+                if (parentAdminEmails.contains(lowerEmail)) {
                     System.out.println("Recipient is parent admin (from database), using collection: " + PARENT_ADMIN_COLLECTION);
                     return PARENT_ADMIN_COLLECTION;
                 }
                 
                 // Check if recipient is an admin
-                if (adminService.getAllAdmins().stream()
-                    .anyMatch(admin -> admin.getEmail().equalsIgnoreCase(recipientEmail))) {
+                if (adminEmails.contains(lowerEmail)) {
                     System.out.println("Recipient is admin (from database), using collection: " + ADMIN_COLLECTION);
                     return ADMIN_COLLECTION;
                 }
@@ -93,5 +105,27 @@ public class EmailCollectionResolver {
         // Default collection for other types
         System.out.println("Could not determine specific collection, using default: " + DEFAULT_COLLECTION);
         return DEFAULT_COLLECTION;
+    }
+    
+    private void updateCacheIfNeeded() {
+        long currentTime = System.currentTimeMillis();
+        if (adminEmails == null || parentAdminEmails == null || 
+            (currentTime - lastCacheUpdate) > CACHE_DURATION) {
+            
+            System.out.println("Updating admin email cache...");
+            
+            // Cache admin emails
+            adminEmails = adminService.getAllAdmins().stream()
+                .map(admin -> admin.getEmail().toLowerCase())
+                .collect(Collectors.toSet());
+            
+            // Cache parent admin emails
+            parentAdminEmails = parentAdminService.getAllParentAdmins().stream()
+                .map(pa -> pa.getEmail().toLowerCase())
+                .collect(Collectors.toSet());
+            
+            lastCacheUpdate = currentTime;
+            System.out.println("Cache updated - Admins: " + adminEmails.size() + ", Parent Admins: " + parentAdminEmails.size());
+        }
     }
 }
