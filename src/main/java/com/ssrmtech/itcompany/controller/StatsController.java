@@ -120,16 +120,26 @@ public class StatsController {
                 .mapToInt(t -> t.getTotalHours() != null ? t.getTotalHours() : 0)
                 .sum();
             
-            // Calculate current week hours (last submitted timesheet)
+            // Calculate current week hours (sum of all timesheets for current week)
             int currentWeekHours = 0;
             if (!userTimesheets.isEmpty()) {
-                // Get the most recent timesheet
-                com.ssrmtech.itcompany.model.Timesheet latestTimesheet = userTimesheets.stream()
-                    .max((t1, t2) -> t1.getSubmittedDate().compareTo(t2.getSubmittedDate()))
-                    .orElse(null);
-                if (latestTimesheet != null && latestTimesheet.getTotalHours() != null) {
-                    currentWeekHours = latestTimesheet.getTotalHours();
-                }
+                // Get current week's date range
+                java.time.LocalDate now = java.time.LocalDate.now();
+                java.time.LocalDate startOfWeek = now.with(java.time.DayOfWeek.MONDAY);
+                java.time.LocalDate endOfWeek = now.with(java.time.DayOfWeek.SUNDAY);
+                
+                // Sum hours from all timesheets in current week
+                currentWeekHours = userTimesheets.stream()
+                    .filter(t -> {
+                        try {
+                            java.time.LocalDate weekEnding = java.time.LocalDate.parse(t.getWeekEnding());
+                            return !weekEnding.isBefore(startOfWeek) && !weekEnding.isAfter(endOfWeek);
+                        } catch (Exception e) {
+                            return false;
+                        }
+                    })
+                    .mapToInt(t -> t.getTotalHours() != null ? t.getTotalHours() : 0)
+                    .sum();
             }
             
             stats.put("totalSubmittedTimesheets", totalSubmitted);
