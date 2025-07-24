@@ -1,6 +1,10 @@
 package com.ssrmtech.itcompany.config;
 
+import com.ssrmtech.itcompany.model.Admin;
+import com.ssrmtech.itcompany.model.ParentAdmin;
 import com.ssrmtech.itcompany.model.User;
+import com.ssrmtech.itcompany.repository.AdminRepository;
+import com.ssrmtech.itcompany.repository.ParentAdminRepository;
 import com.ssrmtech.itcompany.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -13,38 +17,36 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
+    private final ParentAdminRepository parentAdminRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
-        // Check if admin user exists
-        if (userRepository.findByEmail("parent-admin@ssrmtech.com").isEmpty()) {
-            User adminUser = new User();
-            adminUser.setName("Parent Admin");
-            adminUser.setEmail("parent-admin@ssrmtech.com");
-            adminUser.setPassword(passwordEncoder.encode("admin123"));
-            adminUser.setRole("PARENT_ADMIN");
-            adminUser.setStatus("ACTIVE");
-            adminUser.setDepartment("Administration");
-            adminUser.setPhone("123-456-7890");
-            adminUser.setCreatedDate(new Date());
+        // Check if parent admin exists
+        if (parentAdminRepository.findByEmail("parent-admin@ssrmtech.com").isEmpty()) {
+            ParentAdmin parentAdmin = new ParentAdmin();
+            parentAdmin.setName("Parent Admin");
+            parentAdmin.setEmail("parent-admin@ssrmtech.com");
+            parentAdmin.setPassword(passwordEncoder.encode("admin123"));
+            parentAdmin.setDepartment("Administration");
+            parentAdmin.setPhone("123-456-7890");
+            parentAdmin.setCreatedDate(new Date());
             
-            userRepository.save(adminUser);
+            parentAdminRepository.save(parentAdmin);
         }
         
         // Check if regular admin exists
-        if (userRepository.findByEmail("admin@ssrmtech.com").isEmpty()) {
-            User adminUser = new User();
-            adminUser.setName("Regular Admin");
-            adminUser.setEmail("admin@ssrmtech.com");
-            adminUser.setPassword(passwordEncoder.encode("admin123"));
-            adminUser.setRole("ADMIN");
-            adminUser.setStatus("ACTIVE");
-            adminUser.setDepartment("IT");
-            adminUser.setPhone("123-456-7891");
-            adminUser.setCreatedDate(new Date());
+        if (adminRepository.findByEmail("admin@ssrmtech.com").isEmpty()) {
+            Admin admin = new Admin();
+            admin.setName("Regular Admin");
+            admin.setEmail("admin@ssrmtech.com");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setDepartment("IT");
+            admin.setPhone("123-456-7891");
+            admin.setCreatedDate(new Date());
             
-            userRepository.save(adminUser);
+            adminRepository.save(admin);
         }
         
         // Check if regular user exists

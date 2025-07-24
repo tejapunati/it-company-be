@@ -1,7 +1,11 @@
 package com.ssrmtech.itcompany.service.impl;
 
+import com.ssrmtech.itcompany.model.Admin;
 import com.ssrmtech.itcompany.model.EmailLog;
+import com.ssrmtech.itcompany.model.ParentAdmin;
 import com.ssrmtech.itcompany.model.User;
+import com.ssrmtech.itcompany.repository.AdminRepository;
+import com.ssrmtech.itcompany.repository.ParentAdminRepository;
 import com.ssrmtech.itcompany.repository.UserRepository;
 import com.ssrmtech.itcompany.service.EmailLogService;
 import com.ssrmtech.itcompany.service.UserService;
@@ -16,6 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
+    private final ParentAdminRepository parentAdminRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailLogService emailLogService;
 
@@ -108,9 +114,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateLastLogin(String id) {
-        User user = getUserById(id);
-        user.setLastLogin(new Date());
-        userRepository.save(user);
+        // Try parent admin first
+        ParentAdmin parentAdmin = parentAdminRepository.findById(id).orElse(null);
+        if (parentAdmin != null) {
+            parentAdmin.setLastLogin(new Date());
+            parentAdminRepository.save(parentAdmin);
+            return;
+        }
+        
+        // Try admin
+        Admin admin = adminRepository.findById(id).orElse(null);
+        if (admin != null) {
+            admin.setLastLogin(new Date());
+            adminRepository.save(admin);
+            return;
+        }
+        
+        // Try regular user
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+            user.setLastLogin(new Date());
+            userRepository.save(user);
+        }
     }
     
     @Override
