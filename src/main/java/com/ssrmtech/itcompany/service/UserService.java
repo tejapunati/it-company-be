@@ -14,4 +14,6 @@ public interface UserService {
     User rejectUser(String id);
     void updateLastLogin(String id);
     List<User> getUsersByRole(String role);
+    User getUserByEmail(String email);
+    User findUserByEmailInAllTables(String email);
 }

@@ -69,24 +69,85 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(User user) {
-        User existingUser = getUserById(user.getId());
+        // Try to find in User table first
+        User existingUser = userRepository.findById(user.getId()).orElse(null);
         
-        // Update fields
-        existingUser.setName(user.getName());
-        existingUser.setPhone(user.getPhone());
-        existingUser.setDepartment(user.getDepartment());
-        
-        // Only admins can update role
-        if (user.getRole() != null) {
-            existingUser.setRole(user.getRole());
+        if (existingUser != null) {
+            // Update regular user
+            updateUserFields(existingUser, user);
+            return userRepository.save(existingUser);
         }
         
-        // Update password if provided
+        // Try Admin table
+        Admin admin = adminRepository.findById(user.getId()).orElse(null);
+        if (admin != null) {
+            updateAdminFields(admin, user);
+            adminRepository.save(admin);
+            return convertAdminToUser(admin);
+        }
+        
+        // Try ParentAdmin table
+        ParentAdmin parentAdmin = parentAdminRepository.findById(user.getId()).orElse(null);
+        if (parentAdmin != null) {
+            updateParentAdminFields(parentAdmin, user);
+            parentAdminRepository.save(parentAdmin);
+            return convertParentAdminToUser(parentAdmin);
+        }
+        
+        throw new RuntimeException("User not found with id: " + user.getId());
+    }
+    
+    private void updateUserFields(User existingUser, User user) {
+        if (user.getName() != null) existingUser.setName(user.getName());
+        if (user.getEmail() != null) existingUser.setEmail(user.getEmail());
+        if (user.getPhone() != null) existingUser.setPhone(user.getPhone());
+        if (user.getDepartment() != null) existingUser.setDepartment(user.getDepartment());
+        if (user.getRole() != null) existingUser.setRole(user.getRole());
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
-        
-        return userRepository.save(existingUser);
+    }
+    
+    private void updateAdminFields(Admin admin, User user) {
+        if (user.getName() != null) admin.setName(user.getName());
+        if (user.getEmail() != null) admin.setEmail(user.getEmail());
+        if (user.getPhone() != null) admin.setPhone(user.getPhone());
+        if (user.getDepartment() != null) admin.setDepartment(user.getDepartment());
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            admin.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+    }
+    
+    private void updateParentAdminFields(ParentAdmin parentAdmin, User user) {
+        if (user.getName() != null) parentAdmin.setName(user.getName());
+        if (user.getEmail() != null) parentAdmin.setEmail(user.getEmail());
+        if (user.getPhone() != null) parentAdmin.setPhone(user.getPhone());
+        if (user.getDepartment() != null) parentAdmin.setDepartment(user.getDepartment());
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            parentAdmin.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+    }
+    
+    private User convertAdminToUser(Admin admin) {
+        User user = new User();
+        user.setId(admin.getId());
+        user.setName(admin.getName());
+        user.setEmail(admin.getEmail());
+        user.setPhone(admin.getPhone());
+        user.setDepartment(admin.getDepartment());
+        user.setRole(admin.getRole());
+        return user;
+    }
+    
+    private User convertParentAdminToUser(ParentAdmin parentAdmin) {
+        User user = new User();
+        user.setId(parentAdmin.getId());
+        user.setName(parentAdmin.getName());
+        user.setEmail(parentAdmin.getEmail());
+        user.setPhone(parentAdmin.getPhone());
+        user.setDepartment(parentAdmin.getDepartment());
+        user.setRole(parentAdmin.getRole());
+        return user;
     }
 
     @Override
@@ -147,6 +208,44 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getUsersByRole(String role) {
         return userRepository.findByRole(role);
+    }
+    
+    @Override
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+    
+    @Override
+    public User findUserByEmailInAllTables(String email) {
+        // Check Admin table
+        Admin admin = adminRepository.findByEmail(email).orElse(null);
+        if (admin != null) {
+            User user = new User();
+            user.setId(admin.getId());
+            user.setName(admin.getName());
+            user.setEmail(admin.getEmail());
+            user.setPhone(admin.getPhone());
+            user.setDepartment(admin.getDepartment());
+            user.setRole(admin.getRole());
+            user.setPassword(admin.getPassword());
+            return user;
+        }
+        
+        // Check ParentAdmin table
+        ParentAdmin parentAdmin = parentAdminRepository.findByEmail(email).orElse(null);
+        if (parentAdmin != null) {
+            User user = new User();
+            user.setId(parentAdmin.getId());
+            user.setName(parentAdmin.getName());
+            user.setEmail(parentAdmin.getEmail());
+            user.setPhone(parentAdmin.getPhone());
+            user.setDepartment(parentAdmin.getDepartment());
+            user.setRole(parentAdmin.getRole());
+            user.setPassword(parentAdmin.getPassword());
+            return user;
+        }
+        
+        return null;
     }
     
     private void sendAdminNotification(User user) {

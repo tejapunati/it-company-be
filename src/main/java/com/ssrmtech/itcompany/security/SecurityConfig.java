@@ -72,6 +72,8 @@ public class SecurityConfig {
                     .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/email-migration/**")).permitAll()
                     .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/direct-emails/**")).permitAll()
                     .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/email-copy/**")).permitAll()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/users/profile")).authenticated()
+                    .requestMatchers(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/users/check-password/**")).permitAll()
                     .anyRequest().authenticated()
             );
         
