@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -63,27 +64,24 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(user));
     }
 
-    @GetMapping("/check-password/{email}")
-    public ResponseEntity<?> checkPassword(@PathVariable String email) {
+
+    @PostMapping("/profile-data")
+    public ResponseEntity<?> getProfileData(@RequestBody Map<String, String> request) {
         try {
-            ParentAdmin parentAdmin = parentAdminRepository.findByEmail(email).orElse(null);
-            if (parentAdmin != null) {
-                return ResponseEntity.ok("ParentAdmin password hash: " + parentAdmin.getPassword());
+            String email = request.get("email");
+            User user = userService.findUserByEmailInAllTables(email);
+            
+            if (user == null) {
+                user = userService.getUserByEmail(email);
             }
             
-            Admin admin = adminRepository.findByEmail(email).orElse(null);
-            if (admin != null) {
-                return ResponseEntity.ok("Admin password hash: " + admin.getPassword());
+            if (user == null) {
+                return ResponseEntity.badRequest().body("User not found");
             }
             
-            User user = userRepository.findByEmail(email).orElse(null);
-            if (user != null) {
-                return ResponseEntity.ok("User password hash: " + user.getPassword());
-            }
-            
-            return ResponseEntity.badRequest().body("User not found");
+            return ResponseEntity.ok(user);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error fetching profile data: " + e.getMessage());
         }
     }
     
